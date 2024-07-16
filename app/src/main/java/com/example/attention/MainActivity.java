@@ -281,17 +281,18 @@ public class MainActivity extends AppCompatActivity {
         glSurfaceView.setRenderInputImage(true);
         facemesh.setResultListener(
                 faceMeshResult -> {
-                    /////////////////////////////////////////////////////////////////////
                     this.userIsDrowsy = userStatusDetector.isDrowsy(faceMeshResult);
                     logNoseLandmark(faceMeshResult, /*showPixelValues=*/ false);
                     glSurfaceView.setRenderData(faceMeshResult);
                     glSurfaceView.requestRender();
                     if (this.userIsDrowsy) {
                         TextView drowsinessTV = findViewById(R.id.drowsiness_status);
-                        drowsinessTV.setText(getResources().getString(R.string.drowsy) + String.valueOf(userStatusDetector.getDistanceLeftEye()));
+                        drowsinessTV.setText(getResources().getString(R.string.drowsy) + ". L: " + String.valueOf(userStatusDetector.getDistanceLeftEye()) + ", R: " + String.valueOf(userStatusDetector.getDistanceRightEye()));
+//                        drowsinessTV.setText(getResources().getString(R.string.drowsy))
                     } else {
                         TextView drowsinessTV = findViewById(R.id.drowsiness_status);
-                        drowsinessTV.setText(getResources().getString(R.string.no_drowsy) + String.valueOf(userStatusDetector.getDistanceLeftEye()));
+                        drowsinessTV.setText(getResources().getString(R.string.no_drowsy) + ", " + String.valueOf(userStatusDetector.getDistanceLeftEye()) + ", R: " + String.valueOf(userStatusDetector.getDistanceRightEye()));
+//                        drowsinessTV.setText(getResources().getString(R.string.no_drowsy)
                     }
                 });
 

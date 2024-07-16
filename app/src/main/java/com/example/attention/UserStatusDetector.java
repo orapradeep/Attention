@@ -19,6 +19,7 @@ import java.util.List;
 
 public class UserStatusDetector extends AppCompatActivity {
     private float distanceLeftEye; // betw the top and the bottom
+    private float distanceRightEye; // betw the top and the bottom
     private float drowsyDistanceThreshold;
     private float get_distance(float x1, float y1, float x2, float y2) {
         return (float) Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((y1 - y2), 2));
@@ -38,13 +39,15 @@ public class UserStatusDetector extends AppCompatActivity {
             for (NormalizedLandmark coordinates : lmList) {
                 NormalizedLandmark leftEyeTop = lmList.get(159);
                 NormalizedLandmark leftEyeBottom = lmList.get(145);
+                NormalizedLandmark rightEyeTop = lmList.get(386);
+                NormalizedLandmark rightEyeBottom = lmList.get(374);
                 this.distanceLeftEye = get_distance(leftEyeTop.getX(), leftEyeTop.getY(), leftEyeBottom.getX(), leftEyeBottom.getY());
-
+                this.distanceRightEye = get_distance(rightEyeTop.getX(), rightEyeTop.getY(), rightEyeBottom.getX(), rightEyeBottom.getY());
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        if (this.distanceLeftEye <= this.drowsyDistanceThreshold) {
+        if (this.distanceLeftEye <= this.drowsyDistanceThreshold && this.distanceRightEye <= this.drowsyDistanceThreshold) {
             return true;
         } else {
             return false;
@@ -53,5 +56,8 @@ public class UserStatusDetector extends AppCompatActivity {
 
     public float getDistanceLeftEye() {
         return this.distanceLeftEye;
+    }
+    public float getDistanceRightEye() {
+        return this.distanceRightEye;
     }
 }
