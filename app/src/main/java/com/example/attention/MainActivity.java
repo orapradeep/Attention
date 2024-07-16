@@ -53,10 +53,14 @@ public class MainActivity extends AppCompatActivity {
     private SolutionGlSurfaceView<FaceMeshResult> glSurfaceView;
 
     private MediaPlayer player;
+    private MediaPlayer player_distraction;
     private boolean drowsinessAlertPlayed = false;
+    private boolean distractionAlertPlayed = false;
     private boolean prevDrowsinessState;
+    private boolean prevDistractionState;
     private UserStatusDetector userStatusDetector = new UserStatusDetector();
     private boolean userIsDrowsy = false;
+    private boolean userIsDistracted = false;
     long curTime = 0;
     long prevTime = 0;
     @Override
@@ -287,12 +291,29 @@ public class MainActivity extends AppCompatActivity {
                 faceMeshResult -> {
                     curTime = System.currentTimeMillis();
                     prevDrowsinessState = this.userIsDrowsy;
+                    prevDistractionState = this.userIsDistracted;
                     this.userIsDrowsy = userStatusDetector.isDrowsy(faceMeshResult, curTime, prevTime);
+                    if (userStatusDetector.headFacingLeft(faceMeshResult, curTime, prevTime)) {
+                        this.userIsDistracted = true;
+                        TextView distractedTV = findViewById(R.id.distracted_status);
+                        distractedTV.setText("Head turning left" +  ". Diff X: " + String.valueOf(userStatusDetector.getDiffInXOfFaceSides()));
+                    } else if (userStatusDetector.headFacingRight(faceMeshResult, curTime, prevTime)) {
+                        this.userIsDistracted = true;
+                        TextView distractedTV = findViewById(R.id.distracted_status);
+                        distractedTV.setText("Head turning right" +  ". Diff X: " + String.valueOf(userStatusDetector.getDiffInXOfFaceSides()));
+                    } else {
+                        this.userIsDistracted = false;
+                        TextView distractedTV = findViewById(R.id.distracted_status);
+                        distractedTV.setText(getResources().getString(R.string.no_distraction) +  ". Diff X: " + String.valueOf(userStatusDetector.getDiffInXOfFaceSides()));
+                    }
                     logNoseLandmark(faceMeshResult, /*showPixelValues=*/ false);
                     glSurfaceView.setRenderData(faceMeshResult);
                     glSurfaceView.requestRender();
                     if (!prevDrowsinessState && this.userIsDrowsy) {
                         drowsinessAlertPlayed = false;
+                    }
+                    if (!prevDistractionState && this.userIsDistracted) {
+                        distractionAlertPlayed = false;
                     }
                     if (this.userIsDrowsy) {
                         TextView drowsinessTV = findViewById(R.id.drowsiness_status);
@@ -307,8 +328,18 @@ public class MainActivity extends AppCompatActivity {
                         }
                     } else {
                         TextView drowsinessTV = findViewById(R.id.drowsiness_status);
-                        drowsinessTV.setText(getResources().getString(R.string.no_drowsy) + ", " + String.valueOf(userStatusDetector.getDistanceLeftEye()) + ", R: " + String.valueOf(userStatusDetector.getDistanceRightEye()));
+                        drowsinessTV.setText(getResources().getString(R.string.no_drowsy) + ". L: " + String.valueOf(userStatusDetector.getDistanceLeftEye()) + ", R: " + String.valueOf(userStatusDetector.getDistanceRightEye()));
 //                        drowsinessTV.setText(getResources().getString(R.string.no_drowsy)
+                    }
+
+                    if (this.userIsDistracted) {
+                        if (player_distraction == null) {
+                            player_distraction = MediaPlayer.create(this, R.raw.distraction_alert);
+                        }
+                        if (!distractionAlertPlayed) {
+                            player_distraction.start();
+                            distractionAlertPlayed = true;
+                        }
                     }
                     prevTime = curTime;
                 });
