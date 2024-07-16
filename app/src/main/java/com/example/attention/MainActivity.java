@@ -3,6 +3,7 @@ package com.example.attention;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,7 +13,6 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.exifinterface.media.ExifInterface;
@@ -34,7 +34,6 @@ public class MainActivity extends AppCompatActivity {
     private FaceMesh facemesh;
     // Run the pipeline and the model inference on GPU or CPU.
     private static final boolean RUN_ON_GPU = true;
-
     private enum InputSource {
         UNKNOWN,
         IMAGE,
@@ -53,6 +52,9 @@ public class MainActivity extends AppCompatActivity {
 
     private SolutionGlSurfaceView<FaceMeshResult> glSurfaceView;
 
+    private MediaPlayer player;
+    private boolean drowsinessAlertPlayed = false;
+    private boolean prevDrowsinessState;
     private UserStatusDetector userStatusDetector = new UserStatusDetector();
     private boolean userIsDrowsy = false;
     long curTime = 0;
@@ -284,14 +286,25 @@ public class MainActivity extends AppCompatActivity {
         facemesh.setResultListener(
                 faceMeshResult -> {
                     curTime = System.currentTimeMillis();
+                    prevDrowsinessState = this.userIsDrowsy;
                     this.userIsDrowsy = userStatusDetector.isDrowsy(faceMeshResult, curTime, prevTime);
                     logNoseLandmark(faceMeshResult, /*showPixelValues=*/ false);
                     glSurfaceView.setRenderData(faceMeshResult);
                     glSurfaceView.requestRender();
+                    if (!prevDrowsinessState && this.userIsDrowsy) {
+                        drowsinessAlertPlayed = false;
+                    }
                     if (this.userIsDrowsy) {
                         TextView drowsinessTV = findViewById(R.id.drowsiness_status);
                         drowsinessTV.setText(getResources().getString(R.string.drowsy) + ". L: " + String.valueOf(userStatusDetector.getDistanceLeftEye()) + ", R: " + String.valueOf(userStatusDetector.getDistanceRightEye()));
 //                        drowsinessTV.setText(getResources().getString(R.string.drowsy))
+                        if (player == null) {
+                            player = MediaPlayer.create(this, R.raw.drowsiness_alert);
+                        }
+                        if (!drowsinessAlertPlayed) {
+                            player.start();
+                            drowsinessAlertPlayed = true;
+                        }
                     } else {
                         TextView drowsinessTV = findViewById(R.id.drowsiness_status);
                         drowsinessTV.setText(getResources().getString(R.string.no_drowsy) + ", " + String.valueOf(userStatusDetector.getDistanceLeftEye()) + ", R: " + String.valueOf(userStatusDetector.getDistanceRightEye()));
