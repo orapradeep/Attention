@@ -55,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
 
     private UserStatusDetector userStatusDetector = new UserStatusDetector();
     private boolean userIsDrowsy = false;
+    long curTime = 0;
+    long prevTime = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -281,7 +283,8 @@ public class MainActivity extends AppCompatActivity {
         glSurfaceView.setRenderInputImage(true);
         facemesh.setResultListener(
                 faceMeshResult -> {
-                    this.userIsDrowsy = userStatusDetector.isDrowsy(faceMeshResult);
+                    curTime = System.currentTimeMillis();
+                    this.userIsDrowsy = userStatusDetector.isDrowsy(faceMeshResult, curTime, prevTime);
                     logNoseLandmark(faceMeshResult, /*showPixelValues=*/ false);
                     glSurfaceView.setRenderData(faceMeshResult);
                     glSurfaceView.requestRender();
@@ -294,6 +297,7 @@ public class MainActivity extends AppCompatActivity {
                         drowsinessTV.setText(getResources().getString(R.string.no_drowsy) + ", " + String.valueOf(userStatusDetector.getDistanceLeftEye()) + ", R: " + String.valueOf(userStatusDetector.getDistanceRightEye()));
 //                        drowsinessTV.setText(getResources().getString(R.string.no_drowsy)
                     }
+                    prevTime = curTime;
                 });
 
         // The runnable to start camera after the gl surface view is attached.

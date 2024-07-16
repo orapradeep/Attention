@@ -21,6 +21,8 @@ public class UserStatusDetector extends AppCompatActivity {
     private float distanceLeftEye; // betw the top and the bottom
     private float distanceRightEye; // betw the top and the bottom
     private float drowsyDistanceThreshold;
+    private long elapsedTime;  // milliseconds
+    private int drowsinessDurationThreshold; // milliseconds
     private float get_distance(float x1, float y1, float x2, float y2) {
         return (float) Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((y1 - y2), 2));
     }
@@ -28,9 +30,11 @@ public class UserStatusDetector extends AppCompatActivity {
     public UserStatusDetector() {
         this.distanceLeftEye = 0;
         this.drowsyDistanceThreshold = 0.01F;
+        this.elapsedTime = 0;
+        this.drowsinessDurationThreshold = 5000;
     }
 
-    public boolean isDrowsy(FaceMeshResult result) {
+    public boolean isDrowsy(FaceMeshResult result, long curTime, long prevTime) {
         try {
             ImmutableSet<FaceMeshConnections.Connection> leftEyeConnections = FaceMeshConnections.FACEMESH_LEFT_EYE;
             // detecting drowsiness for the first detected face
@@ -48,8 +52,15 @@ public class UserStatusDetector extends AppCompatActivity {
             ex.printStackTrace();
         }
         if (this.distanceLeftEye <= this.drowsyDistanceThreshold && this.distanceRightEye <= this.drowsyDistanceThreshold) {
-            return true;
+            this.elapsedTime = this.elapsedTime + (curTime - prevTime);
+            if (this.elapsedTime >= this.drowsinessDurationThreshold) {
+                return true;
+            } else {
+                return false;
+            }
+
         } else {
+            this.elapsedTime = 0;
             return false;
         }
     }
