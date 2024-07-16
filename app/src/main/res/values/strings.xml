@@ -47,4 +47,7 @@
     <string name="load_video" translatable="false">Load Video</string>
     <string name="start_camera" translatable="false">Start Camera</string>
     <string name="instruction" translatable="false">Please press any button above to start</string>
+    <string name="no_drowsy" translatable="false">Not Drowsy</string>
+    <string name="drowsy" translatable="false">Drowsiness Detected!!!</string>
+    <string name="no_distraction" translatable="false">Not Distracted</string>
 </resources>

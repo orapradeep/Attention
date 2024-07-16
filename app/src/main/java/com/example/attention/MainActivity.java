@@ -10,6 +10,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.exifinterface.media.ExifInterface;
@@ -51,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private SolutionGlSurfaceView<FaceMeshResult> glSurfaceView;
 
     private UserStatusDetector userStatusDetector = new UserStatusDetector();
-
+    private boolean userIsDrowsy = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -279,11 +282,17 @@ public class MainActivity extends AppCompatActivity {
         facemesh.setResultListener(
                 faceMeshResult -> {
                     /////////////////////////////////////////////////////////////////////
-
-                    userStatusDetector.isDrowsy(faceMeshResult);
+                    this.userIsDrowsy = userStatusDetector.isDrowsy(faceMeshResult);
                     logNoseLandmark(faceMeshResult, /*showPixelValues=*/ false);
                     glSurfaceView.setRenderData(faceMeshResult);
                     glSurfaceView.requestRender();
+                    if (this.userIsDrowsy) {
+                        TextView drowsinessTV = findViewById(R.id.drowsiness_status);
+                        drowsinessTV.setText(getResources().getString(R.string.drowsy) + String.valueOf(userStatusDetector.getDistanceLeftEye()));
+                    } else {
+                        TextView drowsinessTV = findViewById(R.id.drowsiness_status);
+                        drowsinessTV.setText(getResources().getString(R.string.no_drowsy) + String.valueOf(userStatusDetector.getDistanceLeftEye()));
+                    }
                 });
 
         // The runnable to start camera after the gl surface view is attached.
@@ -294,10 +303,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Updates the preview layout.
         FrameLayout frameLayout = findViewById(R.id.preview_display_layout);
-        imageView.setVisibility(View.GONE);
-        frameLayout.removeAllViewsInLayout();
+        //imageView.setVisibility(View.GONE);
+        //frameLayout.removeAllViewsInLayout();
         frameLayout.addView(glSurfaceView);
         glSurfaceView.setVisibility(View.VISIBLE);
+
         frameLayout.requestLayout();
     }
 
