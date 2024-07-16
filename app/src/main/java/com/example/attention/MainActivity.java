@@ -50,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
 
     private SolutionGlSurfaceView<FaceMeshResult> glSurfaceView;
 
+    private UserStatusDetector userStatusDetector = new UserStatusDetector();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -276,6 +278,9 @@ public class MainActivity extends AppCompatActivity {
         glSurfaceView.setRenderInputImage(true);
         facemesh.setResultListener(
                 faceMeshResult -> {
+                    /////////////////////////////////////////////////////////////////////
+
+                    userStatusDetector.isDrowsy(faceMeshResult);
                     logNoseLandmark(faceMeshResult, /*showPixelValues=*/ false);
                     glSurfaceView.setRenderData(faceMeshResult);
                     glSurfaceView.requestRender();
