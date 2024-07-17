@@ -26,6 +26,7 @@ import com.google.mediapipe.solutions.facemesh.FaceMeshOptions;
 import com.google.mediapipe.solutions.facemesh.FaceMeshResult;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 /** Main activity of MediaPipe Face Mesh app. */
 public class MainActivity extends AppCompatActivity {
@@ -61,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private UserStatusDetector userStatusDetector = new UserStatusDetector();
     private boolean userIsDrowsy = false;
     private boolean userIsDistracted = false;
+    private boolean userFaceDetected = false;
     long curTime = 0;
     long prevTime = 0;
     @Override
@@ -68,8 +70,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         // TODO: Add a toggle to switch between the original face mesh and attention mesh.
-        setupStaticImageDemoUiComponents();
-        setupVideoDemoUiComponents();
+//        setupStaticImageDemoUiComponents();
+//        setupVideoDemoUiComponents();
         setupLiveDemoUiComponents();
     }
 
@@ -136,51 +138,51 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** Sets up the UI components for the static image demo. */
-    private void setupStaticImageDemoUiComponents() {
-        // The Intent to access gallery and read images as bitmap.
-        imageGetter =
-                registerForActivityResult(
-                        new ActivityResultContracts.StartActivityForResult(),
-                        result -> {
-                            Intent resultIntent = result.getData();
-                            if (resultIntent != null) {
-                                if (result.getResultCode() == RESULT_OK) {
-                                    Bitmap bitmap = null;
-                                    try {
-                                        bitmap =
-                                                downscaleBitmap(
-                                                        MediaStore.Images.Media.getBitmap(
-                                                                this.getContentResolver(), resultIntent.getData()));
-                                    } catch (IOException e) {
-                                        Log.e(TAG, "Bitmap reading error:" + e);
-                                    }
-                                    try {
-                                        InputStream imageData =
-                                                this.getContentResolver().openInputStream(resultIntent.getData());
-                                        bitmap = rotateBitmap(bitmap, imageData);
-                                    } catch (IOException e) {
-                                        Log.e(TAG, "Bitmap rotation error:" + e);
-                                    }
-                                    if (bitmap != null) {
-                                        facemesh.send(bitmap);
-                                    }
-                                }
-                            }
-                        });
-        Button loadImageButton = findViewById(R.id.button_load_picture);
-        loadImageButton.setOnClickListener(
-                v -> {
-                    if (inputSource != InputSource.IMAGE) {
-                        stopCurrentPipeline();
-                        setupStaticImageModePipeline();
-                    }
-                    // Reads images from gallery.
-                    Intent pickImageIntent = new Intent(Intent.ACTION_PICK);
-                    pickImageIntent.setDataAndType(MediaStore.Images.Media.INTERNAL_CONTENT_URI, "image/*");
-                    imageGetter.launch(pickImageIntent);
-                });
-        imageView = new FaceMeshResultImageView(this);
-    }
+//    private void setupStaticImageDemoUiComponents() {
+//        // The Intent to access gallery and read images as bitmap.
+//        imageGetter =
+//                registerForActivityResult(
+//                        new ActivityResultContracts.StartActivityForResult(),
+//                        result -> {
+//                            Intent resultIntent = result.getData();
+//                            if (resultIntent != null) {
+//                                if (result.getResultCode() == RESULT_OK) {
+//                                    Bitmap bitmap = null;
+//                                    try {
+//                                        bitmap =
+//                                                downscaleBitmap(
+//                                                        MediaStore.Images.Media.getBitmap(
+//                                                                this.getContentResolver(), resultIntent.getData()));
+//                                    } catch (IOException e) {
+//                                        Log.e(TAG, "Bitmap reading error:" + e);
+//                                    }
+//                                    try {
+//                                        InputStream imageData =
+//                                                this.getContentResolver().openInputStream(resultIntent.getData());
+//                                        bitmap = rotateBitmap(bitmap, imageData);
+//                                    } catch (IOException e) {
+//                                        Log.e(TAG, "Bitmap rotation error:" + e);
+//                                    }
+//                                    if (bitmap != null) {
+//                                        facemesh.send(bitmap);
+//                                    }
+//                                }
+//                            }
+//                        });
+//        Button loadImageButton = findViewById(R.id.button_load_picture);
+//        loadImageButton.setOnClickListener(
+//                v -> {
+//                    if (inputSource != InputSource.IMAGE) {
+//                        stopCurrentPipeline();
+//                        setupStaticImageModePipeline();
+//                    }
+//                    // Reads images from gallery.
+//                    Intent pickImageIntent = new Intent(Intent.ACTION_PICK);
+//                    pickImageIntent.setDataAndType(MediaStore.Images.Media.INTERNAL_CONTENT_URI, "image/*");
+//                    imageGetter.launch(pickImageIntent);
+//                });
+//        imageView = new FaceMeshResultImageView(this);
+//    }
 
     /** Sets up core workflow for static image mode. */
     private void setupStaticImageModePipeline() {
@@ -213,37 +215,37 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** Sets up the UI components for the video demo. */
-    private void setupVideoDemoUiComponents() {
-        // The Intent to access gallery and read a video file.
-        videoGetter =
-                registerForActivityResult(
-                        new ActivityResultContracts.StartActivityForResult(),
-                        result -> {
-                            Intent resultIntent = result.getData();
-                            if (resultIntent != null) {
-                                if (result.getResultCode() == RESULT_OK) {
-                                    glSurfaceView.post(
-                                            () ->
-                                                    videoInput.start(
-                                                            this,
-                                                            resultIntent.getData(),
-                                                            facemesh.getGlContext(),
-                                                            glSurfaceView.getWidth(),
-                                                            glSurfaceView.getHeight()));
-                                }
-                            }
-                        });
-        Button loadVideoButton = findViewById(R.id.button_load_video);
-        loadVideoButton.setOnClickListener(
-                v -> {
-                    stopCurrentPipeline();
-                    setupStreamingModePipeline(InputSource.VIDEO);
-                    // Reads video from gallery.
-                    Intent pickVideoIntent = new Intent(Intent.ACTION_PICK);
-                    pickVideoIntent.setDataAndType(MediaStore.Video.Media.INTERNAL_CONTENT_URI, "video/*");
-                    videoGetter.launch(pickVideoIntent);
-                });
-    }
+//    private void setupVideoDemoUiComponents() {
+//        // The Intent to access gallery and read a video file.
+//        videoGetter =
+//                registerForActivityResult(
+//                        new ActivityResultContracts.StartActivityForResult(),
+//                        result -> {
+//                            Intent resultIntent = result.getData();
+//                            if (resultIntent != null) {
+//                                if (result.getResultCode() == RESULT_OK) {
+//                                    glSurfaceView.post(
+//                                            () ->
+//                                                    videoInput.start(
+//                                                            this,
+//                                                            resultIntent.getData(),
+//                                                            facemesh.getGlContext(),
+//                                                            glSurfaceView.getWidth(),
+//                                                            glSurfaceView.getHeight()));
+//                                }
+//                            }
+//                        });
+//        Button loadVideoButton = findViewById(R.id.button_load_video);
+//        loadVideoButton.setOnClickListener(
+//                v -> {
+//                    stopCurrentPipeline();
+//                    setupStreamingModePipeline(InputSource.VIDEO);
+//                    // Reads video from gallery.
+//                    Intent pickVideoIntent = new Intent(Intent.ACTION_PICK);
+//                    pickVideoIntent.setDataAndType(MediaStore.Video.Media.INTERNAL_CONTENT_URI, "video/*");
+//                    videoGetter.launch(pickVideoIntent);
+//                });
+//    }
 
     /** Sets up the UI components for the live demo with camera input. */
     private void setupLiveDemoUiComponents() {
@@ -290,57 +292,78 @@ public class MainActivity extends AppCompatActivity {
         facemesh.setResultListener(
                 faceMeshResult -> {
                     curTime = System.currentTimeMillis();
-                    prevDrowsinessState = this.userIsDrowsy;
-                    prevDistractionState = this.userIsDistracted;
-                    this.userIsDrowsy = userStatusDetector.isDrowsy(faceMeshResult, curTime, prevTime);
-                    if (userStatusDetector.headFacingLeft(faceMeshResult, curTime, prevTime)) {
-                        this.userIsDistracted = true;
-                        TextView distractedTV = findViewById(R.id.distracted_status);
-                        distractedTV.setText("Head turning left" +  ". Diff X: " + String.valueOf(userStatusDetector.getDiffInXOfFaceSides()));
-                    } else if (userStatusDetector.headFacingRight(faceMeshResult, curTime, prevTime)) {
-                        this.userIsDistracted = true;
-                        TextView distractedTV = findViewById(R.id.distracted_status);
-                        distractedTV.setText("Head turning right" +  ". Diff X: " + String.valueOf(userStatusDetector.getDiffInXOfFaceSides()));
-                    } else {
+                    try {
+                        // to see if there is a face detected
+                        List<NormalizedLandmark> lmList = faceMeshResult.multiFaceLandmarks().get(0).getLandmarkList();
+                        this.userFaceDetected = true;
+                        prevDrowsinessState = this.userIsDrowsy;
+                        prevDistractionState = this.userIsDistracted;
+                        this.userIsDrowsy = userStatusDetector.isDrowsy(faceMeshResult, curTime, prevTime);
+                        if (userStatusDetector.headFacingLeft(faceMeshResult, curTime, prevTime)) {
+                            this.userIsDistracted = true;
+                            TextView distractedTV = findViewById(R.id.distracted_status);
+                            distractedTV.setText("Head turning left" +  ". Diff X: " + String.valueOf(userStatusDetector.getDiffInXOfFaceSides()));
+                        } else if (userStatusDetector.headFacingRight(faceMeshResult, curTime, prevTime)) {
+                            this.userIsDistracted = true;
+                            TextView distractedTV = findViewById(R.id.distracted_status);
+                            distractedTV.setText("Head turning right" +  ". Diff X: " + String.valueOf(userStatusDetector.getDiffInXOfFaceSides()));
+                        } else {
+                            this.userIsDistracted = false;
+                            TextView distractedTV = findViewById(R.id.distracted_status);
+                            distractedTV.setText(getResources().getString(R.string.no_distraction) +  ". Diff X: " + String.valueOf(userStatusDetector.getDiffInXOfFaceSides()));
+                        }
+
+                        if (!prevDrowsinessState && this.userIsDrowsy) {
+                            drowsinessAlertPlayed = false;
+                        }
+                        if (!prevDistractionState && this.userIsDistracted) {
+                            distractionAlertPlayed = false;
+                        }
+                        if (this.userIsDrowsy) {
+                            TextView drowsinessTV = findViewById(R.id.drowsiness_status);
+                            drowsinessTV.setText(getResources().getString(R.string.drowsy) + ". L: " + String.valueOf(userStatusDetector.getDistanceLeftEye()) + ", R: " + String.valueOf(userStatusDetector.getDistanceRightEye()));
+//                        drowsinessTV.setText(getResources().getString(R.string.drowsy))
+                            if (player == null) {
+                                player = MediaPlayer.create(this, R.raw.drowsiness_alert);
+                            }
+                            if (!drowsinessAlertPlayed) {
+                                player.start();
+                                drowsinessAlertPlayed = true;
+                            }
+                        } else {
+                            TextView drowsinessTV = findViewById(R.id.drowsiness_status);
+                            drowsinessTV.setText(getResources().getString(R.string.no_drowsy) + ". L: " + String.valueOf(userStatusDetector.getDistanceLeftEye()) + ", R: " + String.valueOf(userStatusDetector.getDistanceRightEye()));
+//                        drowsinessTV.setText(getResources().getString(R.string.no_drowsy)
+                        }
+
+                        if (this.userIsDistracted) {
+                            if (player_distraction == null) {
+                                player_distraction = MediaPlayer.create(this, R.raw.distraction_alert);
+                            }
+                            if (!distractionAlertPlayed) {
+                                player_distraction.start();
+                                distractionAlertPlayed = true;
+                            }
+                        }
+                    } catch (Exception ex) {
+                        // no face detected
+                        prevDrowsinessState = false;
+                        prevDistractionState = false;
+                        this.userIsDrowsy = false;
                         this.userIsDistracted = false;
-                        TextView distractedTV = findViewById(R.id.distracted_status);
-                        distractedTV.setText(getResources().getString(R.string.no_distraction) +  ". Diff X: " + String.valueOf(userStatusDetector.getDiffInXOfFaceSides()));
+                        this.userFaceDetected = false;
+                        ex.printStackTrace();
+                    }
+
+                    if (!userFaceDetected) {
+                        TextView drowsinessTV = findViewById(R.id.drowsiness_status);
+                        TextView distractionTV = findViewById(R.id.distracted_status);
+                        drowsinessTV.setText("NO FACE DETECTED!");
+                        distractionTV.setText("");
                     }
                     logNoseLandmark(faceMeshResult, /*showPixelValues=*/ false);
                     glSurfaceView.setRenderData(faceMeshResult);
                     glSurfaceView.requestRender();
-                    if (!prevDrowsinessState && this.userIsDrowsy) {
-                        drowsinessAlertPlayed = false;
-                    }
-                    if (!prevDistractionState && this.userIsDistracted) {
-                        distractionAlertPlayed = false;
-                    }
-                    if (this.userIsDrowsy) {
-                        TextView drowsinessTV = findViewById(R.id.drowsiness_status);
-                        drowsinessTV.setText(getResources().getString(R.string.drowsy) + ". L: " + String.valueOf(userStatusDetector.getDistanceLeftEye()) + ", R: " + String.valueOf(userStatusDetector.getDistanceRightEye()));
-//                        drowsinessTV.setText(getResources().getString(R.string.drowsy))
-                        if (player == null) {
-                            player = MediaPlayer.create(this, R.raw.drowsiness_alert);
-                        }
-                        if (!drowsinessAlertPlayed) {
-                            player.start();
-                            drowsinessAlertPlayed = true;
-                        }
-                    } else {
-                        TextView drowsinessTV = findViewById(R.id.drowsiness_status);
-                        drowsinessTV.setText(getResources().getString(R.string.no_drowsy) + ". L: " + String.valueOf(userStatusDetector.getDistanceLeftEye()) + ", R: " + String.valueOf(userStatusDetector.getDistanceRightEye()));
-//                        drowsinessTV.setText(getResources().getString(R.string.no_drowsy)
-                    }
-
-                    if (this.userIsDistracted) {
-                        if (player_distraction == null) {
-                            player_distraction = MediaPlayer.create(this, R.raw.distraction_alert);
-                        }
-                        if (!distractionAlertPlayed) {
-                            player_distraction.start();
-                            distractionAlertPlayed = true;
-                        }
-                    }
                     prevTime = curTime;
                 });
 
