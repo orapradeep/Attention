@@ -28,22 +28,24 @@ public class UserStatusDetector extends AppCompatActivity {
     private int distractionDurationThreshold; // milliseconds
     private float diffInXOfFaceSides;
     private float diffInXOfFacesSidesThreshold;
+    private float smallConstant;
     private float get_distance(float x1, float y1, float x2, float y2) {
         return (float) Math.sqrt(Math.pow((x1 - x2), 2) + Math.pow((y1 - y2), 2));
     }
 
-    private float getDiffInX(float x1, float x2) {
+    private float getDistanceOneDimension(float x1, float x2) {
         return x1 - x2;
     }
 
     public UserStatusDetector() {
         this.distanceLeftEye = 0;
-        this.drowsyDistanceThreshold = 0.01F;
+        this.drowsyDistanceThreshold = 0.15F;
         this.elapsedTime = 0;
         this.drowsinessDurationThreshold = 5000;
         this.diffInXOfFaceSides = 0;
-        this.diffInXOfFacesSidesThreshold = 0.3F;
+        this.diffInXOfFacesSidesThreshold = 0.8F;
         this.distractionDurationThreshold = 3000;
+        this.smallConstant = 0.00001f;
     }
 
     public boolean isDrowsy(FaceMeshResult result, long curTime, long prevTime) {
@@ -53,11 +55,15 @@ public class UserStatusDetector extends AppCompatActivity {
             //        Log.i("Msg", String.valueOf(lmList.size())); //478
             NormalizedLandmark leftEyeTop = lmList.get(159);
             NormalizedLandmark leftEyeBottom = lmList.get(145);
+            NormalizedLandmark leftEyeLeft = lmList.get(33);
+            NormalizedLandmark leftEyeRight = lmList.get(133);
             NormalizedLandmark rightEyeTop = lmList.get(386);
             NormalizedLandmark rightEyeBottom = lmList.get(374);
+            NormalizedLandmark rightEyeLeft = lmList.get(362);
+            NormalizedLandmark rightEyeRight = lmList.get(263);
             for (NormalizedLandmark coordinates : lmList) {
-                this.distanceLeftEye = get_distance(leftEyeTop.getX(), leftEyeTop.getY(), leftEyeBottom.getX(), leftEyeBottom.getY());
-                this.distanceRightEye = get_distance(rightEyeTop.getX(), rightEyeTop.getY(), rightEyeBottom.getX(), rightEyeBottom.getY());
+                this.distanceLeftEye = get_distance(leftEyeTop.getX(), leftEyeTop.getY(), leftEyeBottom.getX(), leftEyeBottom.getY()) / get_distance(leftEyeLeft.getX(), leftEyeLeft.getY(), leftEyeRight.getX(), leftEyeRight.getY());
+                this.distanceRightEye = get_distance(rightEyeTop.getX(), rightEyeTop.getY(), rightEyeBottom.getX(), rightEyeBottom.getY()) / get_distance(rightEyeLeft.getX(), rightEyeLeft.getY(), rightEyeRight.getX(), rightEyeRight.getY());
             }
             if (this.distanceLeftEye <= this.drowsyDistanceThreshold && this.distanceRightEye <= this.drowsyDistanceThreshold) {
                 this.elapsedTime = this.elapsedTime + (curTime - prevTime);
@@ -83,8 +89,14 @@ public class UserStatusDetector extends AppCompatActivity {
             List<NormalizedLandmark> lmList = result.multiFaceLandmarks().get(0).getLandmarkList();
             NormalizedLandmark leftSideFace = lmList.get(234);
             NormalizedLandmark rightSideFace = lmList.get(454);
+            NormalizedLandmark topFace = lmList.get(10);
+            NormalizedLandmark bottomFace = lmList.get(152);
             for (NormalizedLandmark coordinates : lmList) {
-                this.diffInXOfFaceSides = Math.abs(getDiffInX(leftSideFace.getX(), rightSideFace.getX()));
+                float normalizedFactor = getDistanceOneDimension(bottomFace.getY(), topFace.getY());
+                if (normalizedFactor == 0) {
+                    normalizedFactor = smallConstant;
+                }
+                this.diffInXOfFaceSides = Math.abs(getDistanceOneDimension(leftSideFace.getX(), rightSideFace.getX())) / normalizedFactor;
             }
             if (this.diffInXOfFaceSides <= this.diffInXOfFacesSidesThreshold && leftSideFace.getZ() > rightSideFace.getZ()) {
                 this.elapsedTimeTurnLeft = this.elapsedTimeTurnLeft + (curTime - prevTime);
@@ -110,8 +122,14 @@ public class UserStatusDetector extends AppCompatActivity {
             List<NormalizedLandmark> lmList = result.multiFaceLandmarks().get(0).getLandmarkList();
             NormalizedLandmark leftSideFace = lmList.get(234);
             NormalizedLandmark rightSideFace = lmList.get(454);
+            NormalizedLandmark topFace = lmList.get(10);
+            NormalizedLandmark bottomFace = lmList.get(152);
             for (NormalizedLandmark coordinates : lmList) {
-                this.diffInXOfFaceSides = Math.abs(getDiffInX(leftSideFace.getX(), rightSideFace.getX()));
+                float normalizedFactor = getDistanceOneDimension(bottomFace.getY(), topFace.getY());
+                if (normalizedFactor == 0) {
+                    normalizedFactor = smallConstant;
+                }
+                this.diffInXOfFaceSides = Math.abs(getDistanceOneDimension(leftSideFace.getX(), rightSideFace.getX())) / normalizedFactor;
             }
             if (this.diffInXOfFaceSides <= this.diffInXOfFacesSidesThreshold && leftSideFace.getZ() < rightSideFace.getZ()) {
                 this.elapsedTimeTurnRight = this.elapsedTimeTurnRight + (curTime - prevTime);
